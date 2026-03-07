@@ -21,8 +21,12 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 }))
 
 import authRoutes from './routes/auth'
+import familyRoutes from './routes/families'
+import studentRoutes from './routes/students'
 
 app.use('/api/auth', authRoutes)
+app.use('/api/families', familyRoutes)
+app.use('/api/students', studentRoutes)
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
