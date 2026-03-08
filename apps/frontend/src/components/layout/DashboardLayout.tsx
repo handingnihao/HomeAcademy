@@ -1,38 +1,53 @@
-import { Link, Outlet, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { api } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 
+interface FamilyHeader {
+  id: string
+  name: string
+}
+
 export default function DashboardLayout() {
+  const { familyId } = useParams<{ familyId: string }>()
   const { user, logout } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
+  const [family, setFamily] = useState<FamilyHeader | null>(null)
 
-  const navigation = [
-    { name: 'Home', href: '/dashboard', icon: '🏠' },
-    { name: 'Families', href: '/families', icon: '👨‍👩‍👧‍👦' },
-    { name: 'Students', href: '/students', icon: '🎓' },
+  useEffect(() => {
+    if (!familyId) return
+    api.get(`/families/${familyId}`)
+      .then((res) => setFamily({ id: res.data.id, name: res.data.name }))
+      .catch(() => navigate('/', { replace: true }))
+  }, [familyId, navigate])
+
+  const nav = [
+    { name: 'Home', href: `/family/${familyId}`, exact: true, icon: '⊞' },
+    { name: 'Attendance', href: `/family/${familyId}/attendance`, icon: '◫' },
+    { name: 'Subjects', href: `/family/${familyId}/subjects`, icon: '▤' },
   ]
 
-  const isActive = (href: string) => {
-    if (href === '/dashboard') {
-      return location.pathname === href
-    }
-    return location.pathname.startsWith(href)
-  }
+  const isActive = (href: string, exact = false) =>
+    exact ? location.pathname === href : location.pathname.startsWith(href)
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top navbar */}
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-primary-700">🏫 HomeAcademy</h1>
+            <div className="flex items-center gap-3">
+              <span className="text-xl font-bold text-primary-700">HomeAcademy</span>
+              {family && (
+                <>
+                  <span className="text-gray-300">/</span>
+                  <span className="text-sm font-medium text-gray-700">{family.name}</span>
+                </>
+              )}
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">{user?.email}</span>
-              <button
-                onClick={logout}
-                className="text-sm text-gray-600 hover:text-gray-900"
-              >
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-500 hidden sm:block">{user?.email}</span>
+              <button onClick={logout} className="text-sm text-gray-600 hover:text-gray-900">
                 Logout
               </button>
             </div>
@@ -41,28 +56,43 @@ export default function DashboardLayout() {
       </nav>
 
       <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-sm min-h-[calc(100vh-4rem)]">
-          <nav className="px-4 py-6 space-y-2">
-            {navigation.map((item) => (
+        <aside className="w-56 bg-white shadow-sm min-h-[calc(100vh-4rem)] flex flex-col shrink-0">
+          <nav className="px-3 py-5 space-y-1 flex-1">
+            {nav.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
-                  isActive(item.href)
+                className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
+                  isActive(item.href, item.exact)
                     ? 'bg-primary-50 text-primary-700'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                <span className="mr-3 text-lg">{item.icon}</span>
+                <span className="mr-2.5 text-base leading-none">{item.icon}</span>
                 {item.name}
               </Link>
             ))}
           </nav>
+
+          <div className="px-3 py-4 border-t border-gray-100 space-y-1">
+            <Link
+              to="/settings/families"
+              className="flex items-center px-3 py-2.5 text-sm font-medium rounded-md text-gray-500 hover:bg-gray-50 transition-colors"
+            >
+              <span className="mr-2.5 text-base leading-none">⚙</span>
+              Settings
+            </Link>
+            <button
+              onClick={() => navigate('/select-family')}
+              className="w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-md text-gray-500 hover:bg-gray-50 transition-colors"
+            >
+              <span className="mr-2.5 text-base leading-none">⇄</span>
+              Switch Family
+            </button>
+          </div>
         </aside>
 
-        {/* Main content */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-8 min-w-0">
           <Outlet />
         </main>
       </div>
