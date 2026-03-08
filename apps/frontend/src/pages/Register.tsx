@@ -32,7 +32,7 @@ export default function Register() {
     try {
       const response = await api.post('/auth/register', { email, password, role })
       login(response.data.token)
-      navigate('/dashboard')
+      navigate('/')
     } catch (err: any) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.')
     } finally {

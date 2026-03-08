@@ -16,19 +16,24 @@ interface Family {
   state: string
   schoolYearStart: string
   schoolYearEnd: string
-  students: Student[]
 }
 
 export default function FamilyDashboard() {
   const { familyId } = useParams<{ familyId: string }>()
   const [family, setFamily] = useState<Family | null>(null)
+  const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!familyId) return
-    api
-      .get(`/families/${familyId}`)
-      .then((res) => setFamily(res.data))
+    Promise.all([
+      api.get(`/families/${familyId}`),
+      api.get('/students', { params: { familyId } }),
+    ])
+      .then(([familyRes, studentsRes]) => {
+        setFamily(familyRes.data)
+        setStudents(studentsRes.data)
+      })
       .finally(() => setLoading(false))
   }, [familyId])
 
@@ -53,7 +58,7 @@ export default function FamilyDashboard() {
         </p>
       </div>
 
-      {family.students.length === 0 ? (
+      {students.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-12 text-center">
           <p className="text-gray-500 mb-4">No students yet.</p>
           <Link
@@ -69,7 +74,7 @@ export default function FamilyDashboard() {
             Students
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            {family.students.map((student) => (
+            {students.map((student) => (
               <div key={student.id} className="bg-white rounded-lg shadow-sm p-5">
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">
