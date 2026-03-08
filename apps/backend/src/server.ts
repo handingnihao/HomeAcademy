@@ -23,10 +23,24 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 import authRoutes from './routes/auth'
 import familyRoutes from './routes/families'
 import studentRoutes from './routes/students'
+import subjectRoutes from './routes/subjects'
+import attendanceRoutes from './routes/attendance'
+import lessonRoutes from './routes/lessons'
+import gradeRoutes from './routes/grades'
+import complianceRoutes from './routes/compliance'
+import reportRoutes from './routes/reports'
+import coopRoutes from './routes/coop'
 
 app.use('/api/auth', authRoutes)
 app.use('/api/families', familyRoutes)
 app.use('/api/students', studentRoutes)
+app.use('/api/subjects', subjectRoutes)
+app.use('/api/attendance', attendanceRoutes)
+app.use('/api/lessons', lessonRoutes)
+app.use('/api/grades', gradeRoutes)
+app.use('/api/compliance', complianceRoutes)
+app.use('/api/reports', reportRoutes)
+app.use('/api/coop', coopRoutes)
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
