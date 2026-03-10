@@ -11,9 +11,13 @@ RUN npm run build --workspace=apps/backend
 
 FROM node:20-alpine AS runner
 WORKDIR /app
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
+# Copy node_modules from root workspace location
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/backend/dist ./dist
-COPY --from=builder /app/apps/backend/node_modules ./node_modules
 COPY --from=builder /app/apps/backend/prisma ./prisma
 COPY --from=builder /app/apps/backend/package.json ./
+COPY --from=builder /app/packages/shared ./packages/shared
 EXPOSE 3001
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]

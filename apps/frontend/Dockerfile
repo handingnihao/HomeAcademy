@@ -9,6 +9,8 @@ COPY packages/shared ./packages/shared
 RUN npm run build --workspace=apps/frontend
 
 FROM nginx:alpine AS runner
+# Copy custom nginx config
+COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/apps/frontend/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
